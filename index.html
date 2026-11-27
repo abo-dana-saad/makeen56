@@ -140,6 +140,9 @@ ul.dl small{color:var(--mut)}ul.dl .x{min-height:34px;padding:4px 10px;font-size
 label.btn.ghost{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:8px 18px;border-radius:10px;border:1px dashed var(--brass);color:var(--ink);font-weight:600;cursor:pointer;font-size:15px}
 .att{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0}.att .btn{margin:0}#nfst{font-size:13px;color:var(--mut)}
 .dform{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dform label{display:grid;gap:4px;font-size:13px;color:var(--mut)}.dform .w{grid-column:1/-1}
+b[dir=ltr]{unicode-bidi:isolate}.nw{white-space:nowrap}
+.steps{margin:6px 0 8px;padding-inline-start:20px;display:grid;gap:4px}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0}.chk input{width:20px;height:20px;min-height:0}
 </style>
 </head>
 <body>
@@ -216,6 +219,17 @@ label.btn.ghost{display:inline-flex;align-items:center;justify-content:center;mi
         <h3>رقم واتساب الملاحظات</h3>
         <input id="nphone" inputmode="tel" placeholder="05XXXXXXXX" aria-label="رقم واتساب الملاحظات">
         <p class="note">تصل ملاحظات السكان من روابط الشقق على هذا الرقم. يُطبّق بعد «حفظ للجميع».</p>
+        <h3>تنبيه واتساب عند تحديث بيانات شقة</h3>
+        <p class="note" id="wastate">—</p>
+        <ol class="note steps">
+          <li>من واتساب رقم المدير أعلاه، احفظ الرقم <b dir="ltr" class="nw">+34 666 38 75 36</b> (خدمة CallMeBot المجانية).</li>
+          <li>أرسل له هذه الرسالة كما هي: <b dir="ltr">I allow callmebot to send me messages</b></li>
+          <li>يرد عليك برسالة فيها <b>APIKEY</b>. اكتب الرقم هنا واضغط تفعيل.</li>
+        </ol>
+        <input id="wakey" inputmode="numeric" autocomplete="off" aria-label="مفتاح التنبيهات APIKEY" placeholder="APIKEY">
+        <label class="chk"><input type="checkbox" id="wafull" checked> إظهار الاسم والجوال في رسالة التنبيه</label>
+        <div class="row"><button id="waon">تفعيل وإرسال رسالة تجربة</button><button class="ghost" id="waoff">إيقاف التنبيهات</button></div>
+        <p class="note">المفتاح يُحفظ في Google الخاص بك فقط ولا يظهر في الموقع.</p>
         <h3>تسجيل السكان (Google)</h3>
         <label for="regurl" class="lbl">رابط استقبال التسجيل</label>
         <input id="regurl" dir="ltr" placeholder="https://script.google.com/macros/s/…/exec" aria-label="رابط استقبال التسجيل">
@@ -437,6 +451,21 @@ $('dlist').addEventListener('click',async e=>{const b=e.target.closest('[data-dd
   const i=+b.dataset.dd,d=D.pub.docs[i];b.disabled=true;
   try{await gs({action:'adel',at:ADMIN.at,id:d.id})}catch(err){}
   D.pub.docs.splice(i,1);mark();drawDocs();drawDocsAdmin();msg('حُذف الملف — اضغط «حفظ للجميع».')});
+async function waState(){if(!ADMIN||!ADMIN.at||!D.pub.regUrl){$('wastate').textContent='غير متاح.';return}
+  $('wastate').textContent='جارٍ التحقق…';
+  try{const j=await gs({action:'wa',at:ADMIN.at});$('wastate').textContent=j.on?`مفعّلة ✓ على الرقم المنتهي بـ ${j.phone.replace('…','')}`:'غير مفعّلة.';if(j.on)$('wafull').checked=j.full}
+  catch(e){$('wastate').textContent='تعذّر التحقق.'}}
+$('waon').addEventListener('click',async()=>{const k=$('wakey').value.trim(),ph=waNum();
+  if(!ADMIN||!ADMIN.at){msg(ERRS.auth);return}
+  if(!D.pub.notePhone||ph.length<12){msg('اكتب رقم واتساب الملاحظات أعلاه واحفظه أولًا.');return}
+  if(!/^[0-9A-Za-z]{3,40}$/.test(k)){msg('اكتب المفتاح APIKEY كما وصلك.');$('wakey').focus();return}
+  const b=$('waon');b.disabled=true;msg('جارٍ التفعيل…');
+  try{const j=await gs({action:'wa',at:ADMIN.at,key:k,phone:ph,full:$('wafull').checked});
+    $('wakey').value='';msg(j.ok?'تم التفعيل ✓ — وصلتك رسالة تجربة على واتساب.':'انحفظ المفتاح لكن رسالة التجربة ما وصلت. تأكد من المفتاح ومن أن الرقم أعلاه هو نفس الرقم اللي فعّلت منه.');waState()}
+  catch(e){msg('تعذّر التفعيل، تأكد من الإنترنت.')}finally{b.disabled=false}});
+$('waoff').addEventListener('click',async()=>{if(!ADMIN||!ADMIN.at)return;const b=$('waoff');
+  if(!b.dataset.sure){b.dataset.sure=1;b.textContent='تأكيد الإيقاف';return}delete b.dataset.sure;b.textContent='إيقاف التنبيهات';
+  try{await gs({action:'wa',at:ADMIN.at,off:true});msg('أُوقفت التنبيهات.')}catch(e){msg('تعذّر الإيقاف.')}waState()});
 function syncArea(){D.pub.totalArea=ADMIN.areas.reduce((a,x)=>a+num(x),0)}
 $('atb').addEventListener('change',async e=>{const i=e.target.dataset.ai;if(i==null)return;const v=num(e.target.value);if(v<=0){msg('المساحة لازم تكون أكبر من صفر.');return}
   ADMIN.areas[+i]=v;await encApt(+i);syncArea();ADMIN_DIRTY=true;mark();render()});
@@ -487,7 +516,7 @@ $('unlock').addEventListener('click',()=>{$('dlg').classList.add('on');$('pin').
 $('pinx').addEventListener('click',()=>$('dlg').classList.remove('on'));
 async function tryPin(){$('pinmsg').textContent='جارٍ التحقق…';
   try{ADMIN=await unlockAdmin($('pin').value);PINV=$('pin').value}catch(e){ADMIN=null;$('pinmsg').textContent='الرمز غير صحيح';return}
-  $('dlg').classList.remove('on');EY=A;drawBase();drawLinks();tokState();$('nphone').value=D.pub.notePhone||'';$('regurl').value=D.pub.regUrl||'';drawDocsAdmin();$('sheeturl').value=D.pub.sheetUrl||'';$('ed').hidden=false;$('unlock').hidden=true}
+  $('dlg').classList.remove('on');EY=A;drawBase();drawLinks();tokState();$('nphone').value=D.pub.notePhone||'';$('regurl').value=D.pub.regUrl||'';drawDocsAdmin();waState();$('sheeturl').value=D.pub.sheetUrl||'';$('ed').hidden=false;$('unlock').hidden=true}
 $('pinok').addEventListener('click',tryPin);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')tryPin()});
 $('lockb').addEventListener('click',()=>{if(dirty&&!$('lockb').dataset.sure){$('lockb').dataset.sure=1;msg('عندك تغييرات غير محفوظة — اضغط «قفل» مرة ثانية للتأكيد.');return}
   delete $('lockb').dataset.sure;ADMIN=null;PINV=null;ADMIN_DIRTY=false;dirty=false;msg('');adm();$('atb').innerHTML='';$('ed').hidden=true;$('unlock').hidden=false;load()});
