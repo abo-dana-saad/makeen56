@@ -121,6 +121,7 @@ td.n{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .notebox label{font-weight:600;font-size:15px;margin:0}
 .notebox textarea{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);resize:vertical}
 .notebox small{color:var(--mut);font-size:13px}
+.notebox .cnt{justify-self:end;font-variant-numeric:tabular-nums}.notebox .cnt.lim{color:var(--bad);font-weight:600}
 a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:8px 18px;border-radius:10px;background:#1f8f4e;color:#fff;font-weight:600;text-decoration:none}
 </style>
 </head>
@@ -301,12 +302,12 @@ async function openMine(){
    <div><small>${Bc} (شهري)</small><b>${c(fb/12)}</b></div>`:''}<div><small>${A} (شهري)</small><b>${c(fa/12)}</b></div></div>
    <p class="note">الرسوم = مساحة الشقة × سعر المتر (${f2(rate(A))} ر.س/م² في ${A}). هذا الرابط خاص بشقتك فلا تشاركه.</p>
    <div class="notebox"><label for="ntxt">ملاحظة للإدارة</label>
-   ${waNum()?`<textarea id="ntxt" rows="3" maxlength="500" placeholder="مثل: الإنارة في الممر الثاني لا تعمل"></textarea>
+   ${waNum()?`<textarea id="ntxt" rows="3" maxlength="280"></textarea><small class="cnt" id="ncnt">0 / 280</small>
    <a class="btn" id="nsend" href="#" target="_blank" rel="noopener">إرسال عبر واتساب</a><small>تُفتح واتساب والرسالة جاهزة مع رقم شقتك.</small>`
    :`<small>خدمة الملاحظات ستتوفر قريبًا.</small>`}</div>`;
   $('mine').hidden=false;
-  const nt=$('ntxt');if(nt){const upd=()=>{$('nsend').href=waLink(MINE.n,nt.value)};nt.value=NOTE;nt.addEventListener('input',()=>{NOTE=nt.value;upd()});upd();
-    $('nsend').addEventListener('click',e=>{if(!nt.value.trim()){e.preventDefault();nt.focus();nt.placeholder='اكتب ملاحظتك أولًا'}})}
+  const nt=$('ntxt');if(nt){const upd=()=>{$('nsend').href=waLink(MINE.n,nt.value);const c=$('ncnt');c.textContent=`${nt.value.length} / 280`;c.classList.toggle('lim',nt.value.length>=260)};nt.value=NOTE;nt.addEventListener('input',()=>{NOTE=nt.value;upd()});upd();
+    $('nsend').addEventListener('click',e=>{if(!nt.value.trim()){e.preventDefault();nt.focus()}})}
 }
 window.addEventListener('hashchange',openMine);
 
