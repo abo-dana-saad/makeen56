@@ -41,12 +41,7 @@ select:focus,input:focus,button:focus-visible{outline:3px solid var(--brass);out
 .good{color:var(--good)}.bad{color:var(--bad)}
 .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .kpis .card{padding:14px}.kpis small{color:var(--mut);font-size:13px;display:block}.kpis b{font-size:clamp(18px,4.4vw,26px);white-space:nowrap}
-.bars{margin-top:14px;display:grid;gap:10px}
-.bar{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:8px;align-items:center;font-size:14px}
-.track{display:grid;gap:3px}.track i{display:block;height:10px;border-radius:5px}
 .b0{background:#9AA3AF}.b1{background:var(--brass)}
-.legend{display:flex;gap:16px;font-size:13px;color:var(--mut);margin-top:8px}.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle}
-.legend .l0::before{background:#9AA3AF}.legend .l1::before{background:var(--brass)}
 table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;font-size:15px}
 th{background:var(--panel);color:#fff;font-weight:600;padding:10px 8px;text-align:start;font-size:14px}
 td{padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -123,10 +118,23 @@ td.n{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 .notebox small{color:var(--mut);font-size:13px}
 .notebox .cnt{justify-self:end;font-variant-numeric:tabular-nums}.notebox .cnt.lim{color:var(--bad);font-weight:600}
 a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:8px 18px;border-radius:10px;background:#1f8f4e;color:#fff;font-weight:600;text-decoration:none}
+
+body.gated .wrap>*:not(#mine){display:none!important}
+body.gated #mine{margin-top:-34px!important}
+.regq{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 0 6px;font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:transparent;color:var(--ink);border-radius:0;min-width:76px}
+.seg button.on{background:var(--panel);color:#fff}
+.regf{display:grid;gap:6px;margin-top:8px}.regf label{font-size:14px;font-weight:600;margin:6px 0 0}
+.regf button{margin-top:10px}.regd{margin-top:10px}
+.lbl{font-size:13px;color:var(--mut);margin:8px 0 4px}
+table.apt th,table.apt td{padding-inline:4px}table.apt .x{min-height:36px;padding:4px 12px;font-size:14px}
+table.apt .ain{min-height:38px;padding:4px 8px;text-align:center;font-size:15px;max-width:90px}
+.addapt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:12px}
 </style>
 </head>
 <body>
-<header id="hero"><div class="in"><h1>مجمع مكين 56</h1><p>تكاليف الخدمات المشتركة حسب السنة — 32 شقة</p></div></header>
+<header id="hero"><div class="in"><h1>مجمع مكين 56</h1><p>تكاليف الخدمات المشتركة حسب السنة — <span id="napt">32</span> شقة</p></div></header>
 <div class="wrap">
   <section class="card yearbar" aria-label="اختيار السنة">
     <div><label for="ya">السنة</label><select id="ya"></select></div>
@@ -143,10 +151,6 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:4
 
   <h2 id="headline">الملخص</h2>
   <div class="kpis" id="kpis"></div>
-  <div class="card" style="margin-top:10px">
-    <div class="bars" id="bars"></div>
-    <div class="legend" id="legend"></div>
-  </div>
 
   <h2>الجدول الكامل</h2>
   <input class="filter" id="flt" type="search" placeholder="فلترة الجدول… مثل: الصرف" aria-label="فلترة الجدول">
@@ -156,12 +160,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:4
 
   <h2>للإدارة</h2>
   <div class="card">
-    <div class="lock"><div><b>المصروفات وروابط الشقق</b><div class="note" style="margin:0">مقفلة برمز الإدارة.</div></div>
+    <div class="lock"><div><b>المصروفات والشقق</b><div class="note" style="margin:0">مقفلة برمز الإدارة.</div></div>
     <button id="unlock">فتح بالرمز</button></div>
     <div id="ed" hidden>
       <div class="tabs" role="tablist">
         <button class="tab on" data-t="t-exp" role="tab">المصروفات</button>
-        <button class="tab" data-t="t-links" role="tab">روابط الشقق</button>
+        <button class="tab" data-t="t-links" role="tab">الشقق</button>
         <button class="tab" data-t="t-set" role="tab">الإعدادات</button>
       </div>
 
@@ -176,8 +180,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:4
       </section>
 
       <section id="t-links" class="pane" hidden>
-        <p class="note">لكل شقة رابط خاص يُظهر رسومها فقط. الرسوم هنا حسب السنة المختارة أعلى الصفحة.</p>
-        <div class="scroll"><table><thead id="ath"></thead><tbody id="atb"></tbody></table></div>
+        <p class="note">لكل شقة رابط خاص يُظهر رسومها فقط. عدّل المساحة من الخانة، والرسوم حسب السنة المختارة أعلى الصفحة.</p>
+        <div class="row" id="sheetrow"></div>
+        <div class="scroll"><table class="apt"><thead id="ath"></thead><tbody id="atb"></tbody></table></div>
+        <div class="addapt"><input id="newarea" inputmode="decimal" placeholder="مساحة الشقة الجديدة (م²)" aria-label="مساحة الشقة الجديدة"><button class="ghost" id="aadd">+ إضافة شقة</button></div>
       </section>
 
       <section id="t-set" class="pane" hidden>
@@ -188,6 +194,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:4
         <h3>رقم واتساب الملاحظات</h3>
         <input id="nphone" inputmode="tel" placeholder="05XXXXXXXX" aria-label="رقم واتساب الملاحظات">
         <p class="note">تصل ملاحظات السكان من روابط الشقق على هذا الرقم. يُطبّق بعد «حفظ للجميع».</p>
+        <h3>تسجيل السكان (Google)</h3>
+        <label for="regurl" class="lbl">رابط استقبال التسجيل</label>
+        <input id="regurl" dir="ltr" placeholder="https://script.google.com/macros/s/…/exec" aria-label="رابط استقبال التسجيل">
+        <label for="sheeturl" class="lbl">رابط جدول السكان</label>
+        <input id="sheeturl" dir="ltr" placeholder="https://docs.google.com/spreadsheets/d/…" aria-label="رابط جدول السكان">
+        <p class="note">بدون رابط الاستقبال لا يُطلب التسجيل من السكان. يُطبّق بعد «حفظ للجميع».</p>
         <h3>تغيير رمز الإدارة</h3>
         <input id="newpin" type="text" autocomplete="off" style="-webkit-text-security:disc" placeholder="رمز جديد (يُفضّل 8 خانات أو أكثر)" aria-label="رمز جديد">
         <p class="note">يُطبّق عند الضغط على «حفظ للجميع». روابط الشقق لا تتغير.</p>
@@ -209,7 +221,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:4
   <div class="row"><button id="pinok">دخول</button><button class="ghost" id="pinx">إلغاء</button></div>
 </div></div>
 
-<script id="data" type="application/json">{"pub": {"years": {"2026": {"label": "العقد الحالي", "elec": 1317.59, "water": 1022.33, "sewer": 4309, "maint": 51200, "guard": 0, "elev": 220, "mgr": 2000, "sup": []}, "2027": {"label": "العقد الجديد (حارس)", "elec": 1317.59, "water": 1022.33, "sewer": 3000, "maint": 0, "guard": 1500, "elev": 250, "mgr": 1000, "sup": [{"name": "منظف ومطهر أرضيات", "type": "", "size": "", "price": 75.99, "qty": 1}, {"name": "مبيض / مطهر", "type": "", "size": "", "price": 20, "qty": 1}, {"name": "منظف زجاج", "type": "", "size": "", "price": 27.5, "qty": 0.25}, {"name": "أكياس نفايات", "type": "", "size": "", "price": 23, "qty": 1.6}, {"name": "قفازات", "type": "", "size": "", "price": 12.95, "qty": 1}, {"name": "إسفنج", "type": "", "size": "", "price": 14, "qty": 0.5}, {"name": "استبدال الأدوات", "type": "", "size": "", "price": 300, "qty": 0.0833}, {"name": "سماد للأحواض", "type": "", "size": "", "price": 18, "qty": 1}]}, "2028": {"label": "تقديري", "elec": 1317.59, "water": 1022.33, "sewer": 3000, "maint": 0, "guard": 1500, "elev": 250, "mgr": 9600, "sup": [{"name": "منظف ومطهر أرضيات", "type": "", "size": "", "price": 75.99, "qty": 1}, {"name": "مبيض / مطهر", "type": "", "size": "", "price": 20, "qty": 1}, {"name": "منظف زجاج", "type": "", "size": "", "price": 27.5, "qty": 0.25}, {"name": "أكياس نفايات", "type": "", "size": "", "price": 23, "qty": 1.6}, {"name": "قفازات", "type": "", "size": "", "price": 12.95, "qty": 1}, {"name": "إسفنج", "type": "", "size": "", "price": 14, "qty": 0.5}, {"name": "استبدال الأدوات", "type": "", "size": "", "price": 300, "qty": 0.0833}, {"name": "سماد للأحواض", "type": "", "size": "", "price": 18, "qty": 1}]}, "2029": {"label": "تقديري", "elec": 1317.59, "water": 1022.33, "sewer": 3000, "maint": 0, "guard": 1500, "elev": 250, "mgr": 9600, "sup": [{"name": "منظف ومطهر أرضيات", "type": "", "size": "", "price": 75.99, "qty": 1}, {"name": "مبيض / مطهر", "type": "", "size": "", "price": 20, "qty": 1}, {"name": "منظف زجاج", "type": "", "size": "", "price": 27.5, "qty": 0.25}, {"name": "أكياس نفايات", "type": "", "size": "", "price": 23, "qty": 1.6}, {"name": "قفازات", "type": "", "size": "", "price": 12.95, "qty": 1}, {"name": "إسفنج", "type": "", "size": "", "price": 14, "qty": 0.5}, {"name": "استبدال الأدوات", "type": "", "size": "", "price": 300, "qty": 0.0833}, {"name": "سماد للأحواض", "type": "", "size": "", "price": 18, "qty": 1}]}, "2030": {"label": "تقديري", "elec": 1317.59, "water": 1022.33, "sewer": 3000, "maint": 0, "guard": 1500, "elev": 250, "mgr": 9600, "sup": [{"name": "منظف ومطهر أرضيات", "type": "", "size": "", "price": 75.99, "qty": 1}, {"name": "مبيض / مطهر", "type": "", "size": "", "price": 20, "qty": 1}, {"name": "منظف زجاج", "type": "", "size": "", "price": 27.5, "qty": 0.25}, {"name": "أكياس نفايات", "type": "", "size": "", "price": 23, "qty": 1.6}, {"name": "قفازات", "type": "", "size": "", "price": 12.95, "qty": 1}, {"name": "إسفنج", "type": "", "size": "", "price": 14, "qty": 0.5}, {"name": "استبدال الأدوات", "type": "", "size": "", "price": 300, "qty": 0.0833}, {"name": "سماد للأحواض", "type": "", "size": "", "price": 18, "qty": 1}]}, "2031": {"label": "تقديري", "elec": 1317.59, "water": 1022.33, "sewer": 3000, "maint": 0, "guard": 1500, "elev": 250, "mgr": 0, "sup": [{"name": "منظف ومطهر أرضيات", "type": "", "size": "", "price": 75.99, "qty": 1}, {"name": "مبيض / مطهر", "type": "", "size": "", "price": 20, "qty": 1}, {"name": "منظف زجاج", "type": "", "size": "", "price": 27.5, "qty": 0.25}, {"name": "أكياس نفايات", "type": "", "size": "", "price": 23, "qty": 1.6}, {"name": "قفازات", "type": "", "size": "", "price": 12.95, "qty": 1}, {"name": "إسفنج", "type": "", "size": "", "price": 14, "qty": 0.5}, {"name": "استبدال الأدوات", "type": "", "size": "", "price": 300, "qty": 0.0833}, {"name": "سماد للأحواض", "type": "", "size": "", "price": 18, "qty": 1}]}}, "totalArea": 3796, "defA": "2027", "defB": "2026"}, "apts": [{"i": "+tEaltFFAPR5AfE/", "c": "L/CudSP1Tin/AV1umVUoW1m4tbEV2wQQGFIK7FX36a60QYaDEQ=="}, {"i": "F3yXroIcDkDS4cs3", "c": "K/cYVMuLJFB7mdV/ly7BziKzYWhJPeHQsD1GEA37bvxv/rOu"}, {"i": "NIfiz0xBwCXkMOb0", "c": "ZxO5Tnd1/NGPftJN3LCm57cVzVXkuGl2CFlzrHdsI6nBRPR0"}, {"i": "niak0cSXSi3kvL6x", "c": "9DOJCIOOw0y0I7iX+Fa1RdQaOsXL+oiPUCo94VAD96jKlMVd"}, {"i": "6/RWYY89j/XslgxT", "c": "CbYL1ox5WXx7C3Ppa5mN3+C7GuCadrMsGBe8ENSHvfCRteZNCQ=="}, {"i": "IGytcr2vXMxKo5Vt", "c": "zRqFDaRinqNmLy3acfPspF4AXAs7Q5+ipm/kKUA0GLltcKSaeA=="}, {"i": "dmxaWtR2phJhUhbD", "c": "k+Ejy5BU9qi/sQpPV2Anti1DIyvHF30B8Ok0XlETklDLH9hX"}, {"i": "lWefsN6MiaPixJ2C", "c": "NZts+nYaM+69lguBbUtAvFsk+Nd4mpitr/onw+GNO5dkPZtJyw=="}, {"i": "3zzjdOCvGqJaLFL2", "c": "O47LdTaLVsPeCYkpiq1DvI7SQjqH9uc+TedbEwriTDgN2is71A=="}, {"i": "m0jXQf/4+i27ai/5", "c": "FS2XcYJsFd2kY1qe1ps10G4RXxrH5bvDBH1N6qIVAdVqNZrLLw=="}, {"i": "OXRqMqIShBiIKSbG", "c": "flKyj1DCLlh3vQSFbz8533jw6fQMEE/WIG62ce6ip1YBAiy64DE="}, {"i": "Byy1/XLgk+zJa6dw", "c": "fwbqHhEd1BvBgpeyGBIVxTJZdhz3oKhaq8ZN5y1PbCbRSXC28E8="}, {"i": "+CXwlqLPHzwGNvG8", "c": "G6ADH2aDZegof4cjUZ5CVvZ04GOEJMHCMzu6/aPYK3GDUI/V1u0="}, {"i": "q16C3ZKNW393JR14", "c": "juu/g0ARDnYe86IJLqGYjeke0zX8cu3KceN27qeoHav60nwYT6w="}, {"i": "BslPIiKBSQQtzY3o", "c": "rUmY1oAlGrOgRQsThYy1IaaoNYBgavbbHk+eWQJYs9sNngg/tnc="}, {"i": "hcxPZxf0gBybyas5", "c": "n3Jc0oyrqiCRI9eXDT7pe1yaLtPydOBUY8G77lHcYA/c8zeAtw=="}, {"i": "HhCWn1aY9WHGJv58", "c": "z9KNyRz1BAFW46LRBdMnUobsV7Aa9yi5h0piiV8Vv9ySsJXaAC0="}, {"i": "FByMoXncEvYfMOXD", "c": "S2phBLSmT6kL3rWoz+xSvuDBTN3cjkMjwbfiQSXbkp9XcVm53Rs="}, {"i": "wsVXQch4HxkluUcs", "c": "nlq3Ef/qOjh1Ixx5G5gxy1C12FapR0rxW9ijJRZMO0tFofzD40E="}, {"i": "eAkCHcbHr4ZLU7Lz", "c": "SNcKfoaDx7XkS/KUkoqTSecaLARplSMJ97Xr2Ww5G95iyMjLwbk="}, {"i": "tYZ0LAIujrSjXkCT", "c": "EhFp9D2JycVbqk9AwymDBKjH4YsWVzreBZiN6qWuj3Z/4lTKq84="}, {"i": "FiGKYZssFV+tDuA5", "c": "0FYEpxjrBXKZg5TLQVJoqA8jI2CtE0HxtlrvNZ8XwO9YIjzGq2w="}, {"i": "J/h9jOwRXPrtd/a2", "c": "C3/fw5OFi1jnBkNb4QSJ7tzVvKvrohLSGWpFHUYAVERNfPY+MR0="}, {"i": "slWo1kAhTVwi/6wq", "c": "+au5SRU2Qz7iX6PQx04dfDwlfH4pc62+LXWZaXaOELaqZ35r/VE="}, {"i": "KXrv7nb2FLr07JNN", "c": "eVZSRKv1wPk4TYtG8+9994vmTTOeSkDyXF93DDeZdt3Xkab6Pco="}, {"i": "ZqKQGcNLOiLAU3Mh", "c": "GA0LlDTitdXIPBvXlhSSvWHqUuPujS94vEF9XZgYxONEi9gnF+E="}, {"i": "/kgvSVTLiFnJW1p3", "c": "+ShAOWpP9gVaOAcJXmv+LPUjE1vNrwbWC2HReXL9l/VYKdttvh4="}, {"i": "/W7n2er9Y1n/tmu8", "c": "oEGxsjVn/4r/Z/UQUB5NlMv53y3qgwmCnbaRjbcMY2/Uv/r0SDw="}, {"i": "AB1IcL+6i45WwmkC", "c": "w6NO6AgEX4frto/1uNw3JqE284C5qqPgY/8mXEXze5v1nwmTgQ=="}, {"i": "YLlsDVCTdxx0D7L1", "c": "DxGYrRE68Iim4gYOA2f6VNDHHf61QmPe1pt60VoaIbm/+4RF+8E="}, {"i": "HZcLC85gNAkmYVl1", "c": "oVnBjsvZzNtjYWvp0qrPsu0ClEJ2t2cUhiDSGpCpHCJdqL+jmRs="}, {"i": "4qT3R+Hj6ARpSRtd", "c": "putcOyo2eLEwhfdfqGCGjdGFUp5d3baEoc3nG+xcPRRnAWxzDzw="}], "admin": {"s": "uS/1FApKWZJ6J9z6kEx3sw==", "i": "ivHWOwF3X6TcECFC", "n": 310000, "c": "erRZa6XaGoVArqKR04Nf+SomZXqNjA14VxUcXy1uVte1pYGAE1HqIV9dNhr9OkURoePWrIniA606o1ud6DpCptVT2hEmF6L4b7sH+2AnacoFAz0h4Lw75ljizjnIIoXEjyLnkn8gcMfE5ZkffrD7vCEs4nPf7RMSYAiyYFg38HK5Jb+RytkA1YBx5DYDnx5+8Hm5YO0ajce7TXG0tCnaVOF6M7JG6o6HopjLXjEiQgDNf4JJN4YX95TwQydXQDbLsaTK5JPDusfuAQm1iL6oXlMft2uA1KHKVKpvT8Ma1itTXHTSup35MOgJEYtuKoM9F5dfZLnTxltRMoxY3D7tD5CVYTnnfFTVDneMMY4Io9SA+cDWWw+JRh8Xrpp5KfaQQrWJc2hYBonyF7WGCh18pSkBaD32lm5EHvM1sbOGf/5ctuphzSA7B3mPvFxpXaLB9FpFf2CB9sbcGHLVzPi1rRf6C0P5Y1rV2JNk/fmZNp3fleISL5fxw3uu375kpZhTK/eR+RcHyM6KgABxfObNmOuSnndMrUiihoKSfOwfBb98btKeW2xCJoXQA4IuwUXvHLGqzgZdM//f2re+kcvMsiffmRxupXF/KRPF/2ZuxpCXmkO4/AZjGeXcQWx9KdudM22mC+bGlV1PyqAgOxVMVuap1s30ePLMTf0MpKZJWIitbXzt17md0tap4E53vohZf++O2s81MfAMl7flBarVydHkI4MAH9KkHflYVma5tJOGeEI8ujHZa5kRwHujUCwkttj7QuRoG6WJAGb/JywxlVAo4UtrJHid/+wZUbmTRaif6eYfGueICwgc/TDjWyHoV9lt0chumXzP5yTW6BtTIIRHvYzKoPamacLYBpoMdHVwrR87d1jizvnZSeAFL4kNcSZeyIp+tPWZpfcA2nZQdSpGVJvHhX5GJsw7MRGQmdN+eVLAY5568ET48Q9TBQYYTLmr+L6dLbdksRxxCS3fcmW0s4IpeqpbqD8ZyCFX09c4mlL5aQUeIyLByCJ09I1ZEXl3mSr2nZKy22CnfPjLeSxVZPODrN24mh0LoVWr9zkY/gKVwAI56PMOAbFJtM4slN3or5UVbXM6oP2BrA8grje8S0C8v8fmq7t0WXdVsYPlLZHvfB+hwyVdMaXP9ptrTSG39Tdyy98y3iwlY8bG9ev8ProqTb+17ts1mEb0n8IftNeSn9RFmL81Jim42Joz6vt0lsD6bRJv141Ielqe/MDoN6aMhRXUbQq3G9wmLduFKZFz7NR6kqDZLowY9nVb5+oMNiHtvnNq80A0Giy6iQuai7I/ylcHtReDZgBboHzH2vqKyMrumri0vv6AJtvx9kHb6dE6eZdARGae7Kc="}}</script>
+<script id="data" type="application/json">{"pub":{"years":{"2026":{"label":"العقد الحالي","elec":1317.59,"water":1022.33,"sewer":4309,"maint":51200,"guard":0,"elev":220,"mgr":9600,"sup":[]},"2027":{"label":"العقد الجديد (حارس)","elec":1317.59,"water":1022.33,"sewer":3000,"maint":0,"guard":1500,"elev":250,"mgr":9600,"sup":[{"name":"منظف ومطهر أرضيات","type":"","size":"","price":75.99,"qty":1},{"name":"مبيض / مطهر","type":"","size":"","price":20,"qty":1},{"name":"منظف زجاج","type":"","size":"","price":27.5,"qty":0.25},{"name":"أكياس نفايات","type":"","size":"","price":23,"qty":1.6},{"name":"قفازات","type":"","size":"","price":12.95,"qty":1},{"name":"إسفنج","type":"","size":"","price":14,"qty":0.5},{"name":"استبدال الأدوات","type":"","size":"","price":300,"qty":0.0833},{"name":"سماد للأحواض","type":"","size":"","price":18,"qty":1}]},"2028":{"label":"لم تبدأ","elec":0,"water":0,"sewer":0,"maint":0,"guard":0,"elev":0,"mgr":0,"sup":[{"name":"منظف ومطهر أرضيات","type":"","size":"","price":0,"qty":1},{"name":"مبيض / مطهر","type":"","size":"","price":0,"qty":1},{"name":"منظف زجاج","type":"","size":"","price":0,"qty":0.25},{"name":"أكياس نفايات","type":"","size":"","price":0,"qty":1.6},{"name":"قفازات","type":"","size":"","price":0,"qty":1},{"name":"إسفنج","type":"","size":"","price":0,"qty":0.5},{"name":"استبدال الأدوات","type":"","size":"","price":0,"qty":0.0833},{"name":"سماد للأحواض","type":"","size":"","price":0,"qty":1}]},"2029":{"label":"لم تبدأ","elec":0,"water":0,"sewer":0,"maint":0,"guard":0,"elev":0,"mgr":0,"sup":[{"name":"منظف ومطهر أرضيات","type":"","size":"","price":0,"qty":1},{"name":"مبيض / مطهر","type":"","size":"","price":0,"qty":1},{"name":"منظف زجاج","type":"","size":"","price":0,"qty":0.25},{"name":"أكياس نفايات","type":"","size":"","price":0,"qty":1.6},{"name":"قفازات","type":"","size":"","price":0,"qty":1},{"name":"إسفنج","type":"","size":"","price":0,"qty":0.5},{"name":"استبدال الأدوات","type":"","size":"","price":0,"qty":0.0833},{"name":"سماد للأحواض","type":"","size":"","price":0,"qty":1}]},"2030":{"label":"لم تبدأ","elec":0,"water":0,"sewer":0,"maint":0,"guard":0,"elev":0,"mgr":0,"sup":[{"name":"منظف ومطهر أرضيات","type":"","size":"","price":0,"qty":1},{"name":"مبيض / مطهر","type":"","size":"","price":0,"qty":1},{"name":"منظف زجاج","type":"","size":"","price":0,"qty":0.25},{"name":"أكياس نفايات","type":"","size":"","price":0,"qty":1.6},{"name":"قفازات","type":"","size":"","price":0,"qty":1},{"name":"إسفنج","type":"","size":"","price":0,"qty":0.5},{"name":"استبدال الأدوات","type":"","size":"","price":0,"qty":0.0833},{"name":"سماد للأحواض","type":"","size":"","price":0,"qty":1}]},"2031":{"label":"لم تبدأ","elec":0,"water":0,"sewer":0,"maint":0,"guard":0,"elev":0,"mgr":0,"sup":[{"name":"منظف ومطهر أرضيات","type":"","size":"","price":0,"qty":1},{"name":"مبيض / مطهر","type":"","size":"","price":0,"qty":1},{"name":"منظف زجاج","type":"","size":"","price":0,"qty":0.25},{"name":"أكياس نفايات","type":"","size":"","price":0,"qty":1.6},{"name":"قفازات","type":"","size":"","price":0,"qty":1},{"name":"إسفنج","type":"","size":"","price":0,"qty":0.5},{"name":"استبدال الأدوات","type":"","size":"","price":0,"qty":0.0833},{"name":"سماد للأحواض","type":"","size":"","price":0,"qty":1}]}},"totalArea":3796,"defA":"2027","defB":"2026","notePhone":"0599787718","kh":["ef564f3998e8e8f021aa2d184d174aa2a2532ecc8e0c4017829b5eaccd317816","f67b6aa6e76610a848f657ce4f746b39b4554e1053b73ce8c5f7eb99aa38bdbc","ff7ebfc82a97bf6ca232540150e0fbc426bf7b27ccf1c70afd94d2e92c66d044","8bb50b772cb24da18e56bc872c2941d5e2b5263edff130195c206b405587af28","b066883e0e964455ce19ffa95fc779ffaeb0fbb27d074e1a6b752087cda70117","5ff8f86d0c03d3ad2a40ea096e85f391ea75539129f926906bc6470f5be2310c","eb0c8dda4e452cfeceb66c27decf62755b406309175b2afc682b80737d5606d2","79186742ce78168349a7a6c0de430055251320a6f9a5e99df4a7fdb0a27b96b6","fed1b222a628360fe38b3c3114bee54c9d842d4fcc8e7cf73970f1ba5dec5442","3fe1189af173f20bf5d02b39086ea2f448ea837dfcedf8c187781fe67ea09686","ebaaa19644e06eb8d0d4336e05314cd3753c0d5b654656e95928eb25af07a716","ce5a873adeef1da3b406de0965286385eaee48b8e1903883bbf22b181fef36a6","3d77a048874a9598db8057cfb95c7baf34f01d891d7a239ec4cbd2e25bb6f153","3cb0ba719f705ec663ffe092a20cd79b0e0ee4430d8fa9311783dc89fde5e14d","a1a859b609d05f982cb158ac28c0d69c4dfee58c8075210b199e0b1564c7d655","e1e9ed9d72256dc2b8ac7fcc38513872af053004deed419ebc2439e199206292","940ac72bdfe1366f2836a2beae2a00fec007d56c64958cb5bb372b3a4b9ff752","becab1330aa9ab0e1de2e6eea1e503fd4ba8ec10d32b1b9410dcfcc261400f2c","00ec0fc278201c19b531c75c816b1cdfd0c9dc24a9f74a8177700d80003700ba","f165a90c410cf3a9eeda4c432e20a3083a12bbab71de119d463b022acb80a1b4","940547029ce2896c1c2bec339c69c4061e2d17541c8be53f6866953a362de102","548dec5c16f5c9214b9ade0623af5eb7768a0d71aab0127bd1a4c97bf7ba7159","a8dffa327fe1c951feec3b582899323fc97ba97cb2f5e5b0b48ff285edd36599","0d5edb6f480f06aecf6ef713d43020bc5b75cdc7a360039fb0f6072b01ce0879","602459ee7212f3b174f8c9027a3e5945ea57831cc673625b413c748c19f31ab9","d28835ac3aacf94aded0c80e74631e509809cf567199292201b8f19f12687cc3","ea7ad937c212750008d64b7fb59103a121dc593021295feeb763ba24c4af43cc","ef232637962f74387665dcbd6e817dc8c0bed24b5c1e1a779c30747b6ea6636a","eb97f9d64e059ce1d78a9908a152e6a2761dcaeea61e220bec86396352d33557","b0f35bd0c7df9684e059c9598b04a5ba95b3815e61cc6e638ff2e8c42828a2d3","3bbb45dda86e1b6b501a4a75abb8aad70ba1a825509691feb79092c877c683a2","bf56a711eecd04032fa2a931f040c3d873db8e377412b77a7d520ceebe0a9d48"],"regUrl":"https://script.google.com/macros/s/AKfycbzXlZTbkMpGmFEPEIwRPji4Dt0bAN7NV7XerfcsBujRulfewgCJf_iYBK__ni_r8CGe/exec","sheetUrl":"https://docs.google.com/spreadsheets/d/1liLnkU9cBZ4SDpArSCcu5li2Vo06sC7ZZOvI3A3hICw/edit"},"apts":[{"i":"+tEaltFFAPR5AfE/","c":"L/CudSP1Tin/AV1umVUoW1m4tbEV2wQQGFIK7FX36a60QYaDEQ=="},{"i":"F3yXroIcDkDS4cs3","c":"K/cYVMuLJFB7mdV/ly7BziKzYWhJPeHQsD1GEA37bvxv/rOu"},{"i":"NIfiz0xBwCXkMOb0","c":"ZxO5Tnd1/NGPftJN3LCm57cVzVXkuGl2CFlzrHdsI6nBRPR0"},{"i":"niak0cSXSi3kvL6x","c":"9DOJCIOOw0y0I7iX+Fa1RdQaOsXL+oiPUCo94VAD96jKlMVd"},{"i":"6/RWYY89j/XslgxT","c":"CbYL1ox5WXx7C3Ppa5mN3+C7GuCadrMsGBe8ENSHvfCRteZNCQ=="},{"i":"IGytcr2vXMxKo5Vt","c":"zRqFDaRinqNmLy3acfPspF4AXAs7Q5+ipm/kKUA0GLltcKSaeA=="},{"i":"dmxaWtR2phJhUhbD","c":"k+Ejy5BU9qi/sQpPV2Anti1DIyvHF30B8Ok0XlETklDLH9hX"},{"i":"lWefsN6MiaPixJ2C","c":"NZts+nYaM+69lguBbUtAvFsk+Nd4mpitr/onw+GNO5dkPZtJyw=="},{"i":"3zzjdOCvGqJaLFL2","c":"O47LdTaLVsPeCYkpiq1DvI7SQjqH9uc+TedbEwriTDgN2is71A=="},{"i":"m0jXQf/4+i27ai/5","c":"FS2XcYJsFd2kY1qe1ps10G4RXxrH5bvDBH1N6qIVAdVqNZrLLw=="},{"i":"OXRqMqIShBiIKSbG","c":"flKyj1DCLlh3vQSFbz8533jw6fQMEE/WIG62ce6ip1YBAiy64DE="},{"i":"Byy1/XLgk+zJa6dw","c":"fwbqHhEd1BvBgpeyGBIVxTJZdhz3oKhaq8ZN5y1PbCbRSXC28E8="},{"i":"+CXwlqLPHzwGNvG8","c":"G6ADH2aDZegof4cjUZ5CVvZ04GOEJMHCMzu6/aPYK3GDUI/V1u0="},{"i":"q16C3ZKNW393JR14","c":"juu/g0ARDnYe86IJLqGYjeke0zX8cu3KceN27qeoHav60nwYT6w="},{"i":"BslPIiKBSQQtzY3o","c":"rUmY1oAlGrOgRQsThYy1IaaoNYBgavbbHk+eWQJYs9sNngg/tnc="},{"i":"hcxPZxf0gBybyas5","c":"n3Jc0oyrqiCRI9eXDT7pe1yaLtPydOBUY8G77lHcYA/c8zeAtw=="},{"i":"HhCWn1aY9WHGJv58","c":"z9KNyRz1BAFW46LRBdMnUobsV7Aa9yi5h0piiV8Vv9ySsJXaAC0="},{"i":"FByMoXncEvYfMOXD","c":"S2phBLSmT6kL3rWoz+xSvuDBTN3cjkMjwbfiQSXbkp9XcVm53Rs="},{"i":"wsVXQch4HxkluUcs","c":"nlq3Ef/qOjh1Ixx5G5gxy1C12FapR0rxW9ijJRZMO0tFofzD40E="},{"i":"eAkCHcbHr4ZLU7Lz","c":"SNcKfoaDx7XkS/KUkoqTSecaLARplSMJ97Xr2Ww5G95iyMjLwbk="},{"i":"tYZ0LAIujrSjXkCT","c":"EhFp9D2JycVbqk9AwymDBKjH4YsWVzreBZiN6qWuj3Z/4lTKq84="},{"i":"FiGKYZssFV+tDuA5","c":"0FYEpxjrBXKZg5TLQVJoqA8jI2CtE0HxtlrvNZ8XwO9YIjzGq2w="},{"i":"J/h9jOwRXPrtd/a2","c":"C3/fw5OFi1jnBkNb4QSJ7tzVvKvrohLSGWpFHUYAVERNfPY+MR0="},{"i":"slWo1kAhTVwi/6wq","c":"+au5SRU2Qz7iX6PQx04dfDwlfH4pc62+LXWZaXaOELaqZ35r/VE="},{"i":"KXrv7nb2FLr07JNN","c":"eVZSRKv1wPk4TYtG8+9994vmTTOeSkDyXF93DDeZdt3Xkab6Pco="},{"i":"ZqKQGcNLOiLAU3Mh","c":"GA0LlDTitdXIPBvXlhSSvWHqUuPujS94vEF9XZgYxONEi9gnF+E="},{"i":"/kgvSVTLiFnJW1p3","c":"+ShAOWpP9gVaOAcJXmv+LPUjE1vNrwbWC2HReXL9l/VYKdttvh4="},{"i":"/W7n2er9Y1n/tmu8","c":"oEGxsjVn/4r/Z/UQUB5NlMv53y3qgwmCnbaRjbcMY2/Uv/r0SDw="},{"i":"AB1IcL+6i45WwmkC","c":"w6NO6AgEX4frto/1uNw3JqE284C5qqPgY/8mXEXze5v1nwmTgQ=="},{"i":"YLlsDVCTdxx0D7L1","c":"DxGYrRE68Iim4gYOA2f6VNDHHf61QmPe1pt60VoaIbm/+4RF+8E="},{"i":"HZcLC85gNAkmYVl1","c":"oVnBjsvZzNtjYWvp0qrPsu0ClEJ2t2cUhiDSGpCpHCJdqL+jmRs="},{"i":"4qT3R+Hj6ARpSRtd","c":"putcOyo2eLEwhfdfqGCGjdGFUp5d3baEoc3nG+xcPRRnAWxzDzw="}],"admin":{"s":"uS/1FApKWZJ6J9z6kEx3sw==","i":"ivHWOwF3X6TcECFC","n":310000,"c":"erRZa6XaGoVArqKR04Nf+SomZXqNjA14VxUcXy1uVte1pYGAE1HqIV9dNhr9OkURoePWrIniA606o1ud6DpCptVT2hEmF6L4b7sH+2AnacoFAz0h4Lw75ljizjnIIoXEjyLnkn8gcMfE5ZkffrD7vCEs4nPf7RMSYAiyYFg38HK5Jb+RytkA1YBx5DYDnx5+8Hm5YO0ajce7TXG0tCnaVOF6M7JG6o6HopjLXjEiQgDNf4JJN4YX95TwQydXQDbLsaTK5JPDusfuAQm1iL6oXlMft2uA1KHKVKpvT8Ma1itTXHTSup35MOgJEYtuKoM9F5dfZLnTxltRMoxY3D7tD5CVYTnnfFTVDneMMY4Io9SA+cDWWw+JRh8Xrpp5KfaQQrWJc2hYBonyF7WGCh18pSkBaD32lm5EHvM1sbOGf/5ctuphzSA7B3mPvFxpXaLB9FpFf2CB9sbcGHLVzPi1rRf6C0P5Y1rV2JNk/fmZNp3fleISL5fxw3uu375kpZhTK/eR+RcHyM6KgABxfObNmOuSnndMrUiihoKSfOwfBb98btKeW2xCJoXQA4IuwUXvHLGqzgZdM//f2re+kcvMsiffmRxupXF/KRPF/2ZuxpCXmkO4/AZjGeXcQWx9KdudM22mC+bGlV1PyqAgOxVMVuap1s30ePLMTf0MpKZJWIitbXzt17md0tap4E53vohZf++O2s81MfAMl7flBarVydHkI4MAH9KkHflYVma5tJOGeEI8ujHZa5kRwHujUCwkttj7QuRoG6WJAGb/JywxlVAo4UtrJHid/+wZUbmTRaif6eYfGueICwgc/TDjWyHoV9lt0chumXzP5yTW6BtTIIRHvYzKoPamacLYBpoMdHVwrR87d1jizvnZSeAFL4kNcSZeyIp+tPWZpfcA2nZQdSpGVJvHhX5GJsw7MRGQmdN+eVLAY5568ET48Q9TBQYYTLmr+L6dLbdksRxxCS3fcmW0s4IpeqpbqD8ZyCFX09c4mlL5aQUeIyLByCJ09I1ZEXl3mSr2nZKy22CnfPjLeSxVZPODrN24mh0LoVWr9zkY/gKVwAI56PMOAbFJtM4slN3or5UVbXM6oP2BrA8grje8S0C8v8fmq7t0WXdVsYPlLZHvfB+hwyVdMaXP9ptrTSG39Tdyy98y3iwlY8bG9ev8ProqTb+17ts1mEb0n8IftNeSn9RFmL81Jim42Joz6vt0lsD6bRJv141Ielqe/MDoN6aMhRXUbQq3G9wmLduFKZFz7NR6kqDZLowY9nVb5+oMNiHtvnNq80A0Giy6iQuai7I/ylcHtReDZgBboHzH2vqKyMrumri0vv6AJtvx9kHb6dE6eZdARGae7Kc="}}</script>
 <script>
 {
 const OWNER='abo-dana-saad',REPO='makeen56',FILE='data.json',TK='mk56_token';
@@ -227,7 +239,11 @@ const ub=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.cha
 const bu=a=>{let s='';a.forEach(b=>s+=String.fromCharCode(b));return btoa(s)};
 const clone=o=>JSON.parse(JSON.stringify(o));
 let D=JSON.parse($('data').textContent),SHA=null,ADMIN=null,dirty=false,MINE=null;
-let A=null,Bc=null,EY=null,rows=[],cur='الإجمالي',NOTE='';
+let A=null,Bc=null,EY=null,rows=[],cur='الإجمالي',NOTE='',PINV=null,ADMIN_DIRTY=false,REGF=null,REGBUSY=false;
+const REG_DAYS=182,RK=n=>'mk56_reg_'+n;
+const getReg=n=>{try{return JSON.parse(localStorage.getItem(RK(n))||'null')}catch(e){return null}};
+const setReg=(n,v)=>{try{localStorage.setItem(RK(n),JSON.stringify(v))}catch(e){}};
+const normPhone=p=>{let n=String(p||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^0-9]/g,'');if(n.startsWith('00966'))n='0'+n.slice(5);else if(n.startsWith('966'))n='0'+n.slice(3);else if(n.length===9&&n[0]==='5')n='0'+n;return n};
 const waNum=()=>{let n=String(D.pub.notePhone||'').replace(/[^0-9]/g,'');if(!n)return '';if(n.startsWith('00'))n=n.slice(2);if(n.startsWith('05'))n='966'+n.slice(1);else if(n.startsWith('5')&&n.length===9)n='966'+n;return n.length>=11?n:''};
 const waLink=(apt,t)=>`https://wa.me/${waNum()}?text=${encodeURIComponent(`مكين 56 – شقة ${apt}:\n${t.trim()}`)}`;
 
@@ -265,10 +281,8 @@ function render(){yearSel();calc();
     $('kpis').innerHTML=[[`إجمالي ${Bc}`,tB,''],[`إجمالي ${A}`,tA,''],['الفرق',d,sgn(d)]].map(k=>`<div class="card"><small>${k[0]}</small><b class="${k[2]}">${k[0]==='الفرق'?dtxt(k[1])+'<span class="cur">ر.س</span>':sar(k[1])}</b></div>`).join('')}
   else{$('headline').textContent=`تكاليف ${A}${D.pub.years[A].label?' — '+D.pub.years[A].label:''}`;
     $('kpis').innerHTML=[['الإجمالي السنوي',tA],['المتوسط الشهري',tA/12],['سعر المتر',rate(A)]].map((k,i)=>`<div class="card"><small>${k[0]}</small><b>${i==2?f2(k[1])+'<span class="cur">ر.س/م²</span>':sar(k[1])}</b></div>`).join('')}
-  const items=rows.filter(r=>!r.tot),mx=Math.max(...items.map(r=>Math.max(r.a,r.b||0)))||1;
-  $('bars').innerHTML=items.map(r=>`<div class="bar"><span>${esc(r.n)}</span><div class="track">${Bc?`<i class="b0" style="width:${r.b/mx*100}%"></i>`:''}<i class="b1" style="width:${r.a/mx*100}%"></i></div></div>`).join('');
-  $('legend').innerHTML=(Bc?`<span class="l0">${Bc}</span>`:'')+`<span class="l1">${A}</span>`;
   $('th').innerHTML=Bc?`<tr><th>البند</th><th>${Bc}</th><th>${A}</th><th>الفرق</th><th class="hide-s">النسبة</th></tr>`:`<tr><th>البند</th><th>${A} سنوي</th><th>شهري</th></tr>`;
+  $('napt').textContent=D.apts.length;
   drawTable();
   if(ADMIN){drawLinks();drawSupSum()}openMine();
 }
@@ -290,26 +304,57 @@ $('tb').addEventListener('click',e=>{const tr=e.target.closest('tr');if(!tr)retu
 
 /* ---------- personal apartment link ---------- */
 async function openMine(){
-  const m=/^#a(\d{1,2})-([A-Za-z0-9_-]{20,})$/.exec(location.hash);if(!m){$('mine').hidden=true;MINE=null;return}
+  const m=/^#a(\d{1,2})-([A-Za-z0-9_-]{20,})$/.exec(location.hash);if(!m){document.body.classList.remove('gated');$('mine').hidden=true;MINE=null;return}
   if(!MINE||MINE.h!==location.hash){const e=D.apts[+m[1]-1];
     try{if(!e)throw 0;const k=await crypto.subtle.importKey('raw',ub(m[2]),'AES-GCM',false,['decrypt']);
       MINE={h:location.hash,...JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(e.i)},k,ub(e.c))))}}
     catch(err){MINE=null;$('mine').innerHTML=`<p class="note" style="margin:0">الرابط غير صحيح أو ناقص. اطلب رابط شقتك من الإدارة.</p>`;$('mine').hidden=false;return}}
+  const R=getReg(MINE.n),need=!!(D.pub.regUrl&&(!R||Date.now()-R.ts>REG_DAYS*864e5));
+  document.body.classList.toggle('gated',need);
+  if(need){renderReg(R,m[2]);return}
   const a=MINE.area,fa=a*rate(A),fb=Bc?a*rate(Bc):null,d=Bc?fa-fb:null,c=x=>`${f2(x)}<span class="cur">ر.س</span>`;
   $('mine').innerHTML=`<div class="mh"><small>رسوم شقتك</small><h2>شقة ${MINE.n}</h2><span class="ar">${f0(a)} م²</span></div>
    <div class="res">${Bc?`<div><small>${Bc} (سنوي)</small><b>${c(fb)}</b></div>`:''}<div class="hl"><small>${A} (سنوي)</small><b>${c(fa)}</b></div>
    ${Bc?`<div class="wide"><span><small>الفرق السنوي</small><b class="${sgn(d)}">${dtxt(d)}<span class="cur">ر.س</span></b></span><span><small>نسبة التغيير</small><b class="${sgn(d)}">${pct(fb?d/fb:null)}</b></span></div>
    <div><small>${Bc} (شهري)</small><b>${c(fb/12)}</b></div>`:''}<div><small>${A} (شهري)</small><b>${c(fa/12)}</b></div></div>
    <p class="note">الرسوم = مساحة الشقة × سعر المتر (${f2(rate(A))} ر.س/م² في ${A}). هذا الرابط خاص بشقتك فلا تشاركه.</p>
+   ${R&&D.pub.regUrl?`<p class="note regd">مسجّل باسم ${esc(R.name)} (${R.r?'مستأجر':'مالك'}) — <a href="#" id="regedit">تحديث بياناتي</a></p>`:''}
    <div class="notebox"><label for="ntxt">ملاحظة للإدارة</label>
    ${waNum()?`<textarea id="ntxt" rows="3" maxlength="280"></textarea><small class="cnt" id="ncnt">0 / 280</small>
    <a class="btn" id="nsend" href="#" target="_blank" rel="noopener">إرسال عبر واتساب</a><small>تُفتح واتساب والرسالة جاهزة مع رقم شقتك.</small>`
    :`<small>خدمة الملاحظات ستتوفر قريبًا.</small>`}</div>`;
   $('mine').hidden=false;
+  const re=$('regedit');if(re)re.addEventListener('click',e=>{e.preventDefault();REGF=null;const r=getReg(MINE.n);if(r){r.ts=0;setReg(MINE.n,r)}openMine()});
   const nt=$('ntxt');if(nt){const upd=()=>{$('nsend').href=waLink(MINE.n,nt.value);const c=$('ncnt');c.textContent=`${nt.value.length} / 280`;c.classList.toggle('lim',nt.value.length>=260)};nt.value=NOTE;nt.addEventListener('input',()=>{NOTE=nt.value;upd()});upd();
     $('nsend').addEventListener('click',e=>{if(!nt.value.trim()){e.preventDefault();nt.focus()}})}
 }
-window.addEventListener('hashchange',openMine);
+function renderReg(R,key){
+  if(!REGF||REGF.n!==MINE.n)REGF={n:MINE.n,r:R?R.r:null,name:R?R.name:'',phone:R?R.phone:''};
+  const F=REGF,who=F.r===true?'المستأجر':F.r===false?'المالك':'';
+  $('mine').innerHTML=`<div class="mh"><small>${R?'تحديث البيانات (كل 6 أشهر)':'تسجيل الشقة'}</small><h2>شقة ${MINE.n}</h2></div>
+   <p class="note" style="margin-top:4px">سجّل بياناتك مرة واحدة للاطلاع على رسوم شقتك وإرسال الملاحظات. تصل البيانات للإدارة فقط.</p>
+   <div class="regq"><span>هل الشقة مؤجرة؟</span><div class="seg"><button type="button" class="${F.r===true?'on':''}" data-r="1">نعم</button><button type="button" class="${F.r===false?'on':''}" data-r="0">لا</button></div></div>
+   ${F.r==null?'':`<div class="regf"><label for="rname">اسم ${who}</label><input id="rname" maxlength="60" autocomplete="name" value="${esc(F.name)}">
+   <label for="rphone">جوال ${who}</label><input id="rphone" inputmode="tel" dir="ltr" maxlength="16" autocomplete="tel" value="${esc(F.phone)}" placeholder="05XXXXXXXX">
+   <button id="rsend"${REGBUSY?' disabled':''}>${REGBUSY?'جارٍ الإرسال…':(R?'تحديث ومتابعة':'تسجيل ومتابعة')}</button></div>`}
+   <div class="msg" id="rmsg" role="status"></div>`;
+  $('mine').hidden=false;
+  $('mine').querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{F.r=b.dataset.r==='1';renderReg(R,key)}));
+  const rn=$('rname'),rp=$('rphone');if(!rn)return;
+  rn.addEventListener('input',()=>F.name=rn.value);rp.addEventListener('input',()=>F.phone=rp.value);
+  $('rsend').addEventListener('click',async()=>{
+    const name=F.name.trim(),phone=normPhone(F.phone);
+    if(name.length<2){$('rmsg').textContent='اكتب الاسم.';rn.focus();return}
+    if(!/^05\d{8}$/.test(phone)){$('rmsg').textContent='اكتب رقم جوال صحيح يبدأ بـ 05 (10 أرقام).';rp.focus();return}
+    REGBUSY=true;renderReg(R,key);
+    try{const res=await fetch(D.pub.regUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({apt:MINE.n,key,rented:F.r,name,phone})});
+      const j=await res.json();REGBUSY=false;
+      if(!j.ok){renderReg(R,key);$('rmsg').textContent=j.err==='key'?'رابط الشقة غير صالح. اطلب رابطًا جديدًا من الإدارة.':'تعذّر التسجيل، حاول مرة أخرى.';return}
+      setReg(MINE.n,{r:F.r,name,phone,ts:Date.now()});REGF=null;openMine();
+    }catch(e){REGBUSY=false;renderReg(R,key);$('rmsg').textContent='تعذّر الإرسال، تأكد من الإنترنت وحاول مرة أخرى.'}
+  });
+}
+window.addEventListener('hashchange',()=>{REGF=null;openMine()});
 
 /* ---------- admin ---------- */
 async function derive(pin,salt,n){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
@@ -318,8 +363,20 @@ async function unlockAdmin(pin){const E=D.admin,k=await derive(pin,ub(E.s),E.n);
   return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(E.i)},k,ub(E.c))))}
 const linkFor=i=>location.origin+location.pathname+`#a${i+1}-${ADMIN.keys[i]}`;
 function drawLinks(){
+  $('sheetrow').innerHTML=D.pub.sheetUrl&&/^https:\/\//.test(D.pub.sheetUrl)?`<a class="btn" href="${esc(D.pub.sheetUrl)}" target="_blank" rel="noopener">فتح جدول السكان</a>`:'';
   $('ath').innerHTML=`<tr><th>الشقة</th><th>المساحة</th>${Bc?`<th>${Bc}</th>`:''}<th>${A}</th><th>الرابط</th></tr>`;
-  $('atb').innerHTML=ADMIN.areas.map((a,i)=>`<tr><td>شقة ${i+1}</td><td class="n">${f0(a)}</td>${Bc?`<td class="n">${f2(a*rate(Bc))}</td>`:''}<td class="n">${f2(a*rate(A))}</td><td><button class="ghost x" data-c="${i}">نسخ الرابط</button></td></tr>`).join('')}
+  $('atb').innerHTML=ADMIN.areas.map((a,i)=>`<tr><td>شقة ${i+1}</td><td><input class="ain" inputmode="decimal" data-ai="${i}" value="${a}" aria-label="مساحة شقة ${i+1}"></td>${Bc?`<td class="n">${f2(a*rate(Bc))}</td>`:''}<td class="n">${f2(a*rate(A))}</td><td><button class="ghost x" data-c="${i}">نسخ</button></td></tr>`).join('')}
+const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+async function encApt(i){const k=await crypto.subtle.importKey('raw',ub(ADMIN.keys[i]),'AES-GCM',false,['encrypt']),iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify({n:i+1,area:ADMIN.areas[i]})));D.apts[i]={i:bu(iv),c:bu(new Uint8Array(ct))}}
+function syncArea(){D.pub.totalArea=ADMIN.areas.reduce((a,x)=>a+num(x),0)}
+$('atb').addEventListener('change',async e=>{const i=e.target.dataset.ai;if(i==null)return;const v=num(e.target.value);if(v<=0){msg('المساحة لازم تكون أكبر من صفر.');return}
+  ADMIN.areas[+i]=v;await encApt(+i);syncArea();ADMIN_DIRTY=true;mark();render()});
+$('aadd').addEventListener('click',async()=>{const v=num($('newarea').value);if(v<=0){msg('اكتب مساحة الشقة الجديدة أولًا.');$('newarea').focus();return}
+  if(ADMIN.areas.length>=99){msg('الحد الأقصى 99 شقة.');return}
+  const key=bu(crypto.getRandomValues(new Uint8Array(16))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  ADMIN.areas.push(v);ADMIN.keys.push(key);const i=ADMIN.areas.length-1;await encApt(i);(D.pub.kh||(D.pub.kh=[]))[i]=await sha(key);
+  syncArea();ADMIN_DIRTY=true;$('newarea').value='';mark();render();msg(`أُضيفت شقة ${i+1} (${v} م²) — اضغط «حفظ للجميع» ثم انسخ رابطها.`)});
 $('atb').addEventListener('click',async e=>{const i=e.target.dataset.c;if(i==null)return;const u=linkFor(+i);
   try{await navigator.clipboard.writeText(u);msg(`نُسخ رابط شقة ${+i+1} ✓`)}catch(err){msg(u)}});
 
@@ -346,6 +403,8 @@ $('slist').addEventListener('input',e=>{const t=e.target,i=t.dataset.s;if(i==nul
 $('slist').addEventListener('click',e=>{const i=e.target.dataset.sdel;if(i==null)return;D.pub.years[EY].sup.splice(+i,1);mark();drawSup();render()});
 $('sadd').addEventListener('click',()=>{D.pub.years[EY].sup.push({name:'',type:'',size:'',price:0,qty:1});mark();drawSup()});
 
+$('regurl').addEventListener('input',e=>{D.pub.regUrl=e.target.value.trim();mark()});
+$('sheeturl').addEventListener('input',e=>{D.pub.sheetUrl=e.target.value.trim();mark();drawLinks()});
 $('nphone').addEventListener('input',e=>{D.pub.notePhone=e.target.value.trim();mark();MINE&&openMine()});
 const getTok=()=>{try{return localStorage.getItem(TK)}catch(e){return null}};
 function tokState(){$('tokstate').textContent=getTok()?'يوجد مفتاح محفوظ في هذا الجهاز — زر «حفظ للجميع» مفعّل.':'لا يوجد مفتاح في هذا الجهاز. بدون مفتاح استخدم «نسخ التعديلات» وأرسلها.'}
@@ -359,19 +418,20 @@ function mark(){dirty=true;msg('تغييرات غير محفوظة')}
 $('unlock').addEventListener('click',()=>{$('dlg').classList.add('on');$('pin').value='';$('pinmsg').textContent='';$('pin').focus()});
 $('pinx').addEventListener('click',()=>$('dlg').classList.remove('on'));
 async function tryPin(){$('pinmsg').textContent='جارٍ التحقق…';
-  try{ADMIN=await unlockAdmin($('pin').value)}catch(e){ADMIN=null;$('pinmsg').textContent='الرمز غير صحيح';return}
-  $('dlg').classList.remove('on');EY=A;drawBase();drawLinks();tokState();$('nphone').value=D.pub.notePhone||'';$('ed').hidden=false;$('unlock').hidden=true}
+  try{ADMIN=await unlockAdmin($('pin').value);PINV=$('pin').value}catch(e){ADMIN=null;$('pinmsg').textContent='الرمز غير صحيح';return}
+  $('dlg').classList.remove('on');EY=A;drawBase();drawLinks();tokState();$('nphone').value=D.pub.notePhone||'';$('regurl').value=D.pub.regUrl||'';$('sheeturl').value=D.pub.sheetUrl||'';$('ed').hidden=false;$('unlock').hidden=true}
 $('pinok').addEventListener('click',tryPin);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')tryPin()});
 $('lockb').addEventListener('click',()=>{if(dirty&&!$('lockb').dataset.sure){$('lockb').dataset.sure=1;msg('عندك تغييرات غير محفوظة — اضغط «قفل» مرة ثانية للتأكيد.');return}
-  delete $('lockb').dataset.sure;ADMIN=null;dirty=false;msg('');$('atb').innerHTML='';$('ed').hidden=true;$('unlock').hidden=false;load()});
+  delete $('lockb').dataset.sure;ADMIN=null;PINV=null;ADMIN_DIRTY=false;dirty=false;msg('');$('atb').innerHTML='';$('ed').hidden=true;$('unlock').hidden=false;load()});
 $('copy').addEventListener('click',async()=>{const t=JSON.stringify(D.pub);try{await navigator.clipboard.writeText(t);msg('نُسخت التعديلات ✓ — أرسلها للمسؤول عن الموقع.')}catch(e){msg(t)}});
 $('save').addEventListener('click',async()=>{
   const tok=getTok();if(!tok){msg('الحفظ غير مفعّل في هذا الجهاز: أضف مفتاح الحفظ من «الإعدادات»، أو استخدم «نسخ التعديلات».');return}
   msg('جارٍ الحفظ…');
   try{
     const np=$('newpin').value.trim();
-    if(np){if(np.length<4){msg('الرمز الجديد قصير جدًا.');return}
-      const s=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k=await derive(np,s,D.admin.n);
+    if(np&&np.length<4){msg('الرمز الجديد قصير جدًا.');return}
+    if(np||ADMIN_DIRTY){const pw=np||PINV;
+      const s=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),k=await derive(pw,s,D.admin.n);
       const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify(ADMIN)));
       D.admin={s:bu(s),i:bu(iv),n:D.admin.n,c:bu(new Uint8Array(ct))}}
     const bytes=new TextEncoder().encode(JSON.stringify(D));
@@ -384,7 +444,7 @@ $('save').addEventListener('click',async()=>{
     if(r.status===401||r.status===403||r.status===404){msg('المفتاح بدون صلاحية الكتابة على مستودع makeen56.');return}
     if(r.status===409||r.status===422){msg('تعارض مع تعديل آخر. اقفل وافتح ثم أعد التعديل.');return}
     if(!r.ok)throw new Error(r.status);
-    SHA=(await r.json()).content.sha;dirty=false;$('newpin').value='';
+    SHA=(await r.json()).content.sha;dirty=false;ADMIN_DIRTY=false;if(np)PINV=np;$('newpin').value='';
     msg('تم الحفظ ✓ — يظهر للجميع وفي روابط الشقق.'+(np?' الرمز الجديد مفعّل.':''));
   }catch(e){msg('تعذّر الحفظ، تأكد من الإنترنت وحاول مرة أخرى.')}
 });
