@@ -176,7 +176,7 @@ label.btn.ghost{display:inline-flex;align-items:center;justify-content:center;mi
     <div id="ed" hidden>
       <div class="tabs" role="tablist">
         <button class="tab on" data-t="t-exp" role="tab">المصروفات</button>
-        <button class="tab" data-t="t-links" role="tab">الشقق</button><button class="tab" data-t="t-docs" role="tab">الفواتير</button>
+        <button class="tab" data-t="t-links" role="tab">الشقق</button><button class="tab" data-t="t-docs" role="tab">المستندات</button>
         <button class="tab" data-t="t-set" role="tab">الإعدادات</button>
       </div>
 
@@ -198,11 +198,11 @@ label.btn.ghost{display:inline-flex;align-items:center;justify-content:center;mi
       </section>
 
       <section id="t-docs" class="pane" hidden>
-        <p class="note">ارفع فاتورة أو مستند (صورة أو PDF حتى 10 ميجا). يظهر للجميع تحت جدول السنة بعد «حفظ للجميع».</p>
+        <p class="note">ارفع مستندًا (صورة أو PDF حتى 10 ميجا). يظهر للجميع تحت جدول السنة بعد «حفظ للجميع».</p>
         <div class="dform">
+          <label class="w">النوع<input id="dit" maxlength="40" autocomplete="off"></label>
           <label>السنة<select id="dy"></select></label>
-          <label>البند<select id="dit"></select></label>
-          <label class="w">العنوان<input id="dtt" maxlength="80" placeholder="مثال: فاتورة الكهرباء — نوفمبر"></label>
+          <label>العنوان<input id="dtt" maxlength="80" autocomplete="off"></label>
         </div>
         <div class="row" style="margin-top:10px"><label class="btn ghost" for="dfile">اختيار ملف</label><input type="file" id="dfile" accept="image/*,application/pdf" hidden><span id="dfn" class="note" style="margin:0"></span></div>
         <div class="row"><button id="dup">رفع الملف</button></div>
@@ -371,7 +371,7 @@ async function prep(file,max){
 const ERRS={size:'الملف كبير (الحد 10 ميجا).',type:'نوع الملف غير مدعوم. صورة أو PDF فقط.',limit:'وصلت حد 3 مرفقات في اليوم.',key:'رابط الشقة غير صالح.',auth:'صلاحية الرفع غير مفعّلة.'};
 const docUrl=id=>`https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
 function drawDocs(){const L=(D.pub.docs||[]).filter(d=>d.y===A),el=$('docs');
-  el.innerHTML=L.length?`<h3>فواتير ومستندات ${A}</h3><ul class="dl">${L.map(d=>`<li><a href="${docUrl(d.id)}" target="_blank" rel="noopener"><span>${d.k==='pdf'?'PDF':'صورة'}</span>${esc(d.t)}</a><small>${esc(d.it)}</small></li>`).join('')}</ul>`:'';el.hidden=!L.length}
+  el.innerHTML=L.length?`<h3>مستندات ${A}</h3><ul class="dl">${L.map(d=>`<li><a href="${docUrl(d.id)}" target="_blank" rel="noopener"><span>${d.k==='pdf'?'PDF':'صورة'}</span>${esc(d.t)}</a><small>${esc(d.it)}</small></li>`).join('')}</ul>`:'';el.hidden=!L.length}
 let ATT=[],ATTN=null;
 function renderReg(R,key){
   if(!REGF||REGF.n!==MINE.n)REGF={n:MINE.n,r:R?R.r:null,name:R?R.name:'',phone:R?R.phone:''};
@@ -417,7 +417,6 @@ async function encApt(i){const k=await crypto.subtle.importKey('raw',ub(ADMIN.ke
   const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify({n:i+1,area:ADMIN.areas[i]})));D.apts[i]={i:bu(iv),c:bu(new Uint8Array(ct))}}
 function drawDocsAdmin(){if(!ADMIN)return;const ys=Object.keys(D.pub.years).sort(),dy=$('dy'),cur=dy.value||A;
   dy.innerHTML=ys.map(y=>`<option${y===cur?' selected':''}>${y}</option>`).join('');
-  if(!$('dit').options.length)$('dit').innerHTML=ITEMS.map(x=>`<option>${x[0]}</option>`).join('')+'<option>أخرى</option>';
   const L=(D.pub.docs||[]).map((d,i)=>({...d,i})).filter(d=>d.y===dy.value);
   $('dlist').innerHTML=ADMIN.at?(L.length?`<ul class="dl">${L.map(d=>`<li><a href="${docUrl(d.id)}" target="_blank" rel="noopener"><span>${d.k==='pdf'?'PDF':'صورة'}</span>${esc(d.t)}</a><small>${esc(d.it)}</small><button class="ghost x" data-dd="${d.i}">حذف</button></li>`).join('')}</ul>`:`<p class="note">لا توجد ملفات لسنة ${esc(dy.value)}.</p>`)
     :'<p class="note">رفع الملفات غير مفعّل لهذا الحساب.</p>'}
@@ -425,12 +424,13 @@ $('dy').addEventListener('change',drawDocsAdmin);
 $('dfile').addEventListener('change',()=>{const f=$('dfile').files[0];$('dfn').textContent=f?f.name:'';if(f&&!$('dtt').value.trim())$('dtt').value=f.name.replace(/\.[^.]+$/,'').slice(0,80)});
 $('dup').addEventListener('click',async()=>{const f=$('dfile').files[0],t=$('dtt').value.trim();
   if(!ADMIN||!ADMIN.at){msg(ERRS.auth);return}if(!D.pub.regUrl){msg('أضف رابط استقبال التسجيل في الإعدادات أولًا.');return}
+  if(!$('dit').value.trim()){msg('اكتب نوع المستند أولًا.');$('dit').focus();return}
   if(!f){msg('اختر الملف أولًا.');return}if(!t){msg('اكتب عنوانًا للملف.');$('dtt').focus();return}
   const b=$('dup');b.disabled=true;msg('جارٍ رفع الملف…');
-  try{const p=await prep(f,2200),y=$('dy').value,it=$('dit').value;const j=await gs({action:'aup',at:ADMIN.at,year:y,item:it,title:t,...p});
+  try{const p=await prep(f,2200),y=$('dy').value,it=$('dit').value.trim();const j=await gs({action:'aup',at:ADMIN.at,year:y,item:it,title:t,...p});
     if(!j.ok){msg(ERRS[j.err]||'تعذّر الرفع.');return}
     (D.pub.docs||(D.pub.docs=[])).push({y,it,t,id:j.id,k:p.mime==='application/pdf'?'pdf':'img'});
-    $('dfile').value='';$('dfn').textContent='';$('dtt').value='';mark();drawDocs();drawDocsAdmin();msg('تم رفع الملف ✓ — اضغط «حفظ للجميع» ليظهر للسكان.')}
+    $('dfile').value='';$('dfn').textContent='';$('dtt').value='';$('dit').value='';mark();drawDocs();drawDocsAdmin();msg('تم رفع الملف ✓ — اضغط «حفظ للجميع» ليظهر للسكان.')}
   catch(err){msg(ERRS[err.message]||'تعذّر الرفع، تأكد من الإنترنت.')}finally{b.disabled=false}});
 $('dlist').addEventListener('click',async e=>{const b=e.target.closest('[data-dd]');if(!b)return;
   if(!b.dataset.sure){b.dataset.sure=1;b.textContent='تأكيد الحذف';return}
