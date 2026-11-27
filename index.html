@@ -158,6 +158,7 @@ table.apt .ain{min-height:38px;padding:4px 8px;text-align:center;font-size:15px;
   <p class="note">المبالغ بالريال السعودي. اضغط على أي صف لعرضه في خانة البحث.</p>
 
 
+  <div id="adm" hidden>
   <h2>للإدارة</h2>
   <div class="card">
     <div class="lock"><div><b>المصروفات والشقق</b><div class="note" style="margin:0">مقفلة برمز الإدارة.</div></div>
@@ -210,6 +211,7 @@ table.apt .ain{min-height:38px;padding:4px 8px;text-align:center;font-size:15px;
         <div class="row"><button id="save">حفظ للجميع</button><button class="ghost" id="copy">نسخ التعديلات</button><button class="ghost" id="lockb">قفل</button></div>
       </div>
     </div>
+  </div>
   </div>
   <p class="note">الأرقام من فواتير العمارة وتقديرات الإدارة؛ السنوات القادمة تقديرية حتى تُحدَّث.</p>
 </div>
@@ -354,7 +356,8 @@ function renderReg(R,key){
     }catch(e){REGBUSY=false;renderReg(R,key);$('rmsg').textContent='تعذّر الإرسال، تأكد من الإنترنت وحاول مرة أخرى.'}
   });
 }
-window.addEventListener('hashchange',()=>{REGF=null;openMine()});
+const adm=()=>{$('adm').hidden=!(location.hash==='#admin'||ADMIN)};adm();
+window.addEventListener('hashchange',()=>{REGF=null;adm();openMine()});
 
 /* ---------- admin ---------- */
 async function derive(pin,salt,n){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
@@ -422,7 +425,7 @@ async function tryPin(){$('pinmsg').textContent='جارٍ التحقق…';
   $('dlg').classList.remove('on');EY=A;drawBase();drawLinks();tokState();$('nphone').value=D.pub.notePhone||'';$('regurl').value=D.pub.regUrl||'';$('sheeturl').value=D.pub.sheetUrl||'';$('ed').hidden=false;$('unlock').hidden=true}
 $('pinok').addEventListener('click',tryPin);$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')tryPin()});
 $('lockb').addEventListener('click',()=>{if(dirty&&!$('lockb').dataset.sure){$('lockb').dataset.sure=1;msg('عندك تغييرات غير محفوظة — اضغط «قفل» مرة ثانية للتأكيد.');return}
-  delete $('lockb').dataset.sure;ADMIN=null;PINV=null;ADMIN_DIRTY=false;dirty=false;msg('');$('atb').innerHTML='';$('ed').hidden=true;$('unlock').hidden=false;load()});
+  delete $('lockb').dataset.sure;ADMIN=null;PINV=null;ADMIN_DIRTY=false;dirty=false;msg('');adm();$('atb').innerHTML='';$('ed').hidden=true;$('unlock').hidden=false;load()});
 $('copy').addEventListener('click',async()=>{const t=JSON.stringify(D.pub);try{await navigator.clipboard.writeText(t);msg('نُسخت التعديلات ✓ — أرسلها للمسؤول عن الموقع.')}catch(e){msg(t)}});
 $('save').addEventListener('click',async()=>{
   const tok=getTok();if(!tok){msg('الحفظ غير مفعّل في هذا الجهاز: أضف مفتاح الحفظ من «الإعدادات»، أو استخدم «نسخ التعديلات».');return}
