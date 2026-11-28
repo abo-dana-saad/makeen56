@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<link rel="manifest" id="mf" href="manifest.webmanifest">
+<meta name="theme-color" content="#2E3B4E">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="مكين 56">
 <title>مكين 56 الخدمات والصيانة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -143,10 +150,11 @@ label.btn.ghost{display:inline-flex;align-items:center;justify-content:center;mi
 b[dir=ltr]{unicode-bidi:isolate}.nw{white-space:nowrap}
 .steps{margin:6px 0 8px;padding-inline-start:20px;display:grid;gap:4px}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0}.chk input{width:20px;height:20px;min-height:0}
+.instb{margin-top:10px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;min-height:38px;padding:6px 16px;font-size:14px;font-weight:600;backdrop-filter:blur(4px)}
 </style>
 </head>
 <body>
-<header id="hero"><div class="in"><h1>مكين 56 الخدمات والصيانة</h1><span id="napt" hidden>32</span></div></header>
+<header id="hero"><div class="in"><h1>مكين 56 الخدمات والصيانة</h1><span id="napt" hidden>32</span><button class="instb" id="inst" hidden>تثبيت التطبيق على الجوال</button></div></header>
 <div class="wrap">
   <section class="card yearbar" aria-label="اختيار السنة">
     <div><label for="ya">السنة</label><select id="ya"></select></div>
@@ -251,6 +259,11 @@ b[dir=ltr]{unicode-bidi:isolate}.nw{white-space:nowrap}
   <p class="note">الأرقام من فواتير العمارة وتقديرات الإدارة؛ السنوات القادمة تقديرية حتى تُحدَّث.</p>
 </div>
 
+<div class="dlg" id="idlg" role="dialog" aria-modal="true" aria-labelledby="it"><div class="card">
+  <b id="it">تثبيت التطبيق</b>
+  <ol class="note steps" id="isteps"></ol>
+  <div class="row"><button id="ix">تم</button></div>
+</div></div>
 <div class="dlg" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dt"><div class="card">
   <b id="dt">أدخل رمز الإدارة</b>
   <input id="pin" type="text" inputmode="numeric" autocomplete="off" style="margin-top:10px;-webkit-text-security:disc">
@@ -276,6 +289,16 @@ const ub=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.cha
 const bu=a=>{let s='';a.forEach(b=>s+=String.fromCharCode(b));return btoa(s)};
 const clone=o=>JSON.parse(JSON.stringify(o));
 let D=JSON.parse($('data').textContent),SHA=null,ADMIN=null,dirty=false,MINE=null;
+const APPK='mk56_home',STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+(()=>{const h=location.hash,m=/^#a(\d{1,2})-[A-Za-z0-9_-]{20,}$/.exec(h);
+  if(m||h==='#admin'){try{localStorage.setItem(APPK,h)}catch(e){}
+    const base=location.origin+location.pathname,ic=f=>new URL(f,base).href;
+    const mf={name:m?`مكين 56 — شقة ${m[1]}`:'مكين 56 — الإدارة',short_name:m?`مكين 56 ش${m[1]}`:'إدارة مكين 56',lang:'ar',dir:'rtl',
+      id:base+(m?'?apt='+m[1]:'?admin'),start_url:base+h,scope:base,display:'standalone',background_color:'#F6F2EA',theme_color:'#2E3B4E',
+      icons:[{src:ic('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any'},{src:ic('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any'},{src:ic('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'maskable'}]};
+    document.getElementById('mf').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}))}
+  else if(!h&&STANDALONE){try{const s=localStorage.getItem(APPK);if(s)history.replaceState(null,'',location.pathname+location.search+s)}catch(e){}}})();
+let INSTP=null;
 let A=null,Bc=null,EY=null,rows=[],cur='الإجمالي',NOTE='',PINV=null,ADMIN_DIRTY=false,REGF=null,REGBUSY=false;
 const REG_DAYS=182,RK=n=>'mk56_reg_'+n;
 const getReg=n=>{try{return JSON.parse(localStorage.getItem(RK(n))||'null')}catch(e){return null}};
@@ -413,6 +436,16 @@ function renderReg(R,key){
     }catch(e){REGBUSY=false;renderReg(R,key);$('rmsg').textContent='تعذّر الإرسال، تأكد من الإنترنت وحاول مرة أخرى.'}
   });
 }
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();INSTP=e;$('inst').hidden=false});
+if(!STANDALONE)$('inst').hidden=false;
+$('inst').addEventListener('click',async()=>{
+  if(INSTP){INSTP.prompt();const c=await INSTP.userChoice;INSTP=null;if(c.outcome==='accepted')$('inst').hidden=true;return}
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  $('isteps').innerHTML=ios?'<li>افتح هذا الرابط في <b>Safari</b>.</li><li>اضغط زر <b>المشاركة</b> (المربع والسهم لأعلى) أسفل الشاشة.</li><li>اختر <b>«إضافة إلى الشاشة الرئيسية»</b> ثم <b>«إضافة»</b>.</li>'
+    :'<li>افتح هذا الرابط في <b>Chrome</b>.</li><li>اضغط القائمة <b>⋮</b> أعلى الشاشة.</li><li>اختر <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b>.</li>';
+  $('idlg').classList.add('on')});
+$('ix').addEventListener('click',()=>$('idlg').classList.remove('on'));
+window.addEventListener('appinstalled',()=>{$('inst').hidden=true});
 const adm=()=>{$('adm').hidden=!(location.hash==='#admin'||ADMIN)};adm();
 window.addEventListener('hashchange',()=>{REGF=null;adm();openMine()});
 
