@@ -290,11 +290,14 @@ const bu=a=>{let s='';a.forEach(b=>s+=String.fromCharCode(b));return btoa(s)};
 const clone=o=>JSON.parse(JSON.stringify(o));
 let D=JSON.parse($('data').textContent),SHA=null,ADMIN=null,dirty=false,MINE=null;
 const APPK='mk56_home',STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-(()=>{const h=location.hash,m=/^#a(\d{1,2})-[A-Za-z0-9_-]{20,}$/.exec(h);
-  if(m||h==='#admin'){try{localStorage.setItem(APPK,h)}catch(e){}
-    const base=location.origin+location.pathname,ic=f=>new URL(f,base).href;
+const APPROOT=new URL('./',document.baseURI).href,ADMPATH=/\/admin\/(index\.html)?$/.test(location.pathname);
+(()=>{if(ADMPATH&&location.hash!=='#admin')history.replaceState(null,'',location.pathname+location.search+'#admin');
+  else if(!ADMPATH&&location.hash==='#admin'){location.replace(APPROOT+'admin/');return}
+  const h=location.hash,m=/^#a(\d{1,2})-[A-Za-z0-9_-]{20,}$/.exec(h);
+  if(m||ADMPATH){if(m)try{localStorage.setItem(APPK,h)}catch(e){}
+    const base=ADMPATH?APPROOT+'admin/':APPROOT,ic=f=>new URL(f,APPROOT).href;
     const mf={name:m?`مكين 56 — شقة ${m[1]}`:'مكين 56 — الإدارة',short_name:m?`مكين 56 ش${m[1]}`:'إدارة مكين 56',lang:'ar',dir:'rtl',
-      id:base+(m?'?apt='+m[1]:'?admin'),start_url:base+h,scope:base,display:'standalone',background_color:'#F6F2EA',theme_color:'#2E3B4E',
+      id:base+(m?'?apt='+m[1]:''),start_url:base+(m?h:'#admin'),scope:base,display:'standalone',background_color:'#F6F2EA',theme_color:'#2E3B4E',
       icons:[{src:ic('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any'},{src:ic('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any'},{src:ic('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'maskable'}]};
     document.getElementById('mf').href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/manifest+json'}))}
   else if(!h&&STANDALONE){try{const s=localStorage.getItem(APPK);if(s)history.replaceState(null,'',location.pathname+location.search+s)}catch(e){}}})();
@@ -447,14 +450,14 @@ $('inst').addEventListener('click',async()=>{
 $('ix').addEventListener('click',()=>$('idlg').classList.remove('on'));
 window.addEventListener('appinstalled',()=>{$('inst').hidden=true});
 const adm=()=>{$('adm').hidden=!(location.hash==='#admin'||ADMIN)};adm();
-window.addEventListener('hashchange',()=>{REGF=null;adm();openMine()});
+window.addEventListener('hashchange',()=>{if(!ADMPATH&&location.hash==='#admin'){location.replace(APPROOT+'admin/');return}REGF=null;adm();openMine()});
 
 /* ---------- admin ---------- */
 async function derive(pin,salt,n){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
   return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:n,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
 async function unlockAdmin(pin){const E=D.admin,k=await derive(pin,ub(E.s),E.n);
   return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(E.i)},k,ub(E.c))))}
-const linkFor=i=>location.origin+location.pathname+`#a${i+1}-${ADMIN.keys[i]}`;
+const linkFor=i=>APPROOT+`#a${i+1}-${ADMIN.keys[i]}`;
 function drawLinks(){
   $('sheetrow').innerHTML=D.pub.sheetUrl&&/^https:\/\//.test(D.pub.sheetUrl)?`<a class="btn" href="${esc(D.pub.sheetUrl)}" target="_blank" rel="noopener">فتح جدول السكان</a>`:'';
   $('ath').innerHTML=`<tr><th>الشقة</th><th>المساحة</th>${Bc?`<th>${Bc}</th>`:''}<th>${A}</th><th>الرابط</th></tr>`;
