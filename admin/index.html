@@ -239,6 +239,9 @@ b[dir=ltr]{unicode-bidi:isolate}.nw{white-space:nowrap}
         <h3>رقم واتساب الملاحظات</h3>
         <input id="nphone" inputmode="tel" placeholder="05XXXXXXXX" aria-label="رقم واتساب الملاحظات">
         <p class="note">تصل ملاحظات السكان من روابط الشقق على هذا الرقم. يُطبّق بعد «حفظ للجميع».</p>
+        <h3>تنبيه بالبريد عند تحديث بيانات شقة</h3>
+        <label class="chk"><input type="checkbox" id="mailon"> إرسال تنبيه على بريدي <span id="mailto" dir="ltr"></span></label>
+        <p class="note">يصل البريد لحساب Google المالك لجدول السكان، مع الاسم والجوال والبيانات السابقة.</p>
         <h3>تنبيه واتساب عند تحديث بيانات شقة</h3>
         <p class="note" id="wastate">—</p>
         <ol class="note steps">
@@ -504,7 +507,8 @@ $('dlist').addEventListener('click',async e=>{const b=e.target.closest('[data-dd
   D.pub.docs.splice(i,1);mark();drawDocs();drawDocsAdmin();msg('حُذف الملف — اضغط «حفظ للجميع».')});
 async function waState(){if(!ADMIN||!ADMIN.at||!D.pub.regUrl){$('wastate').textContent='غير متاح.';return}
   $('wastate').textContent='جارٍ التحقق…';
-  try{const j=await gs({action:'wa',at:ADMIN.at});$('wastate').textContent=j.on?`مفعّلة ✓ على الرقم المنتهي بـ ${j.phone.replace('…','')}`:'غير مفعّلة.';if(j.on)$('wafull').checked=j.full}
+  try{const j=await gs({action:'wa',at:ADMIN.at});$('wastate').textContent=j.on?`مفعّلة ✓ على الرقم المنتهي بـ ${j.phone.replace('…','')}`:'غير مفعّلة.';if(j.on)$('wafull').checked=j.full;
+    if(j.mail!==undefined){$('mailon').checked=j.mail;$('mailto').textContent=j.email?`(${j.email})`:''}}
   catch(e){$('wastate').textContent='تعذّر التحقق.'}}
 $('waon').addEventListener('click',async()=>{const k=$('wakey').value.trim(),ph=waNum();
   if(!ADMIN||!ADMIN.at){msg(ERRS.auth);return}
@@ -514,6 +518,8 @@ $('waon').addEventListener('click',async()=>{const k=$('wakey').value.trim(),ph=
   try{const j=await gs({action:'wa',at:ADMIN.at,key:k,phone:ph,full:$('wafull').checked});
     $('wakey').value='';msg(j.ok?'تم التفعيل ✓ — وصلتك رسالة تجربة على واتساب.':'انحفظ المفتاح لكن رسالة التجربة ما وصلت. تأكد من المفتاح ومن أن الرقم أعلاه هو نفس الرقم اللي فعّلت منه.');waState()}
   catch(e){msg('تعذّر التفعيل، تأكد من الإنترنت.')}finally{b.disabled=false}});
+$('mailon').addEventListener('change',async()=>{const on=$('mailon').checked;if(!ADMIN||!ADMIN.at)return;msg(on?'جارٍ تفعيل تنبيه البريد…':'جارٍ الإيقاف…');
+  try{const j=await gs({action:'wa',at:ADMIN.at,mail:on});msg(on?(j.ok?'تم تفعيل تنبيه البريد ✓ — وصلتك رسالة تجربة.':'تعذّر إرسال البريد، حاول لاحقًا.'):'أُوقف تنبيه البريد.')}catch(e){msg('تعذّر الاتصال.')}});
 $('waoff').addEventListener('click',async()=>{if(!ADMIN||!ADMIN.at)return;const b=$('waoff');
   if(!b.dataset.sure){b.dataset.sure=1;b.textContent='تأكيد الإيقاف';return}delete b.dataset.sure;b.textContent='إيقاف التنبيهات';
   try{await gs({action:'wa',at:ADMIN.at,off:true});msg('أُوقفت التنبيهات.')}catch(e){msg('تعذّر الإيقاف.')}waState()});
