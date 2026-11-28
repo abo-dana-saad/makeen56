@@ -5,6 +5,16 @@
 <base href="/makeen56/">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
+<meta name="description" content="تكاليف الخدمات والصيانة لمجمع مكين 56 حسب السنة، مع المستندات ورسوم كل شقة.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="مكين 56">
+<meta property="og:title" content="مكين 56 الخدمات والصيانة">
+<meta property="og:description" content="تكاليف الخدمات والصيانة لمجمع مكين 56 حسب السنة، مع المستندات ورسوم كل شقة.">
+<meta property="og:image" content="https://abo-dana-saad.github.io/makeen56/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ar_SA">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" id="mf" href="manifest.webmanifest">
 <meta name="theme-color" content="#2E3B4E">
 <link rel="icon" href="icon-192.png">
@@ -152,10 +162,11 @@ b[dir=ltr]{unicode-bidi:isolate}.nw{white-space:nowrap}
 .steps{margin:6px 0 8px;padding-inline-start:20px;display:grid;gap:4px}
 .chk{display:flex;align-items:center;gap:8px;font-size:14px;margin:8px 0}.chk input{width:20px;height:20px;min-height:0}
 .instb{margin-top:10px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;min-height:38px;padding:6px 16px;font-size:14px;font-weight:600;backdrop-filter:blur(4px)}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 </style>
 </head>
 <body>
-<header id="hero"><div class="in"><h1>مكين 56 الخدمات والصيانة</h1><span id="napt" hidden>32</span><button class="instb" id="inst" hidden>تثبيت التطبيق على الجوال</button></div></header>
+<header id="hero"><div class="in"><h1>مكين 56 الخدمات والصيانة</h1><span id="napt" hidden>32</span><div class="hbtns"><button class="instb" id="inst" hidden>تثبيت التطبيق على الجوال</button><button class="instb" id="shr">مشاركة الموقع</button></div></div></header>
 <div class="wrap">
   <section class="card yearbar" aria-label="اختيار السنة">
     <div><label for="ya">السنة</label><select id="ya"></select></div>
@@ -449,6 +460,9 @@ $('inst').addEventListener('click',async()=>{
     :'<li>افتح هذا الرابط في <b>Chrome</b>.</li><li>اضغط القائمة <b>⋮</b> أعلى الشاشة.</li><li>اختر <b>«تثبيت التطبيق»</b> أو <b>«إضافة إلى الشاشة الرئيسية»</b>.</li>';
   $('idlg').classList.add('on')});
 $('ix').addEventListener('click',()=>$('idlg').classList.remove('on'));
+$('shr').addEventListener('click',async()=>{const d={title:'مكين 56 الخدمات والصيانة',text:'تكاليف الخدمات والصيانة لمجمع مكين 56',url:APPROOT};
+  if(navigator.share){try{await navigator.share(d)}catch(e){}return}
+  try{await navigator.clipboard.writeText(APPROOT);$('shr').textContent='نُسخ الرابط ✓';setTimeout(()=>$('shr').textContent='مشاركة الموقع',2000)}catch(e){prompt('انسخ الرابط:',APPROOT)}});
 window.addEventListener('appinstalled',()=>{$('inst').hidden=true});
 const adm=()=>{$('adm').hidden=!(location.hash==='#admin'||ADMIN)};adm();
 window.addEventListener('hashchange',()=>{if(!ADMPATH&&location.hash==='#admin'){location.replace(APPROOT+'admin/');return}REGF=null;adm();openMine()});
@@ -462,7 +476,7 @@ const linkFor=i=>APPROOT+`#a${i+1}-${ADMIN.keys[i]}`;
 function drawLinks(){
   $('sheetrow').innerHTML=D.pub.sheetUrl&&/^https:\/\//.test(D.pub.sheetUrl)?`<a class="btn" href="${esc(D.pub.sheetUrl)}" target="_blank" rel="noopener">فتح جدول السكان</a>`:'';
   $('ath').innerHTML=`<tr><th>الشقة</th><th>المساحة</th>${Bc?`<th>${Bc}</th>`:''}<th>${A}</th><th>الرابط</th></tr>`;
-  $('atb').innerHTML=ADMIN.areas.map((a,i)=>`<tr><td>شقة ${i+1}</td><td><input class="ain" inputmode="decimal" data-ai="${i}" value="${a}" aria-label="مساحة شقة ${i+1}"></td>${Bc?`<td class="n">${f2(a*rate(Bc))}</td>`:''}<td class="n">${f2(a*rate(A))}</td><td><button class="ghost x" data-c="${i}">نسخ</button></td></tr>`).join('')}
+  $('atb').innerHTML=ADMIN.areas.map((a,i)=>`<tr><td>شقة ${i+1}</td><td><input class="ain" inputmode="decimal" data-ai="${i}" value="${a}" aria-label="مساحة شقة ${i+1}"></td>${Bc?`<td class="n">${f2(a*rate(Bc))}</td>`:''}<td class="n">${f2(a*rate(A))}</td><td><button class="ghost x" data-c="${i}">${navigator.share?'إرسال':'نسخ'}</button></td></tr>`).join('')}
 const sha=async t=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))].map(b=>b.toString(16).padStart(2,'0')).join('');
 async function encApt(i){const k=await crypto.subtle.importKey('raw',ub(ADMIN.keys[i]),'AES-GCM',false,['encrypt']),iv=crypto.getRandomValues(new Uint8Array(12));
   const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(JSON.stringify({n:i+1,area:ADMIN.areas[i]})));D.apts[i]={i:bu(iv),c:bu(new Uint8Array(ct))}}
@@ -511,8 +525,9 @@ $('aadd').addEventListener('click',async()=>{const v=num($('newarea').value);if(
   const key=bu(crypto.getRandomValues(new Uint8Array(16))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   ADMIN.areas.push(v);ADMIN.keys.push(key);const i=ADMIN.areas.length-1;await encApt(i);(D.pub.kh||(D.pub.kh=[]))[i]=await sha(key);
   syncArea();ADMIN_DIRTY=true;$('newarea').value='';mark();render();msg(`أُضيفت شقة ${i+1} (${v} م²) — اضغط «حفظ للجميع» ثم انسخ رابطها.`)});
-$('atb').addEventListener('click',async e=>{const i=e.target.dataset.c;if(i==null)return;const u=linkFor(+i);
-  try{await navigator.clipboard.writeText(u);msg(`نُسخ رابط شقة ${+i+1} ✓`)}catch(err){msg(u)}});
+$('atb').addEventListener('click',async e=>{const i=e.target.dataset.c;if(i==null)return;const u=linkFor(+i),n=+i+1;
+  if(navigator.share){try{await navigator.share({title:`مكين 56 — شقة ${n}`,text:`مكين 56 — رابط شقة ${n} الخاص (لا تشاركه مع غيرك).\nسجّل بياناتك ثم ثبّت التطبيق من زر «تثبيت التطبيق على الجوال».`,url:u});msg(`أُرسل رابط شقة ${n} ✓`)}catch(err){}return}
+  try{await navigator.clipboard.writeText(u);msg(`نُسخ رابط شقة ${n} ✓`)}catch(err){msg(u)}});
 
 const FIELDS=[["label","وصف السنة",'t'],["elec","الكهرباء — متوسط شهري"],["water","المياه — متوسط شهري"],["sewer","الصرف — شهري"],["maint","عقد الصيانة — سنوي"],["guard","راتب الحارس — شهري"],["elev","صيانة المصعد — شهري"],["mgr","رسم المدير — سنوي"]];
 function drawEY(){const ys=YRS();if(!D.pub.years[EY])EY=A;$('ey').innerHTML=ys.map(y=>`<option${y===EY?' selected':''}>${y}</option>`).join('')}
